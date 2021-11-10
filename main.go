@@ -90,6 +90,7 @@ func (r requester) Get(ctx context.Context, url string) (Page, error) {
 	return nil, nil
 }
 
+//Crawler - интерфейс (контракт) краулера
 type Crawler interface {
 	Scan(ctx context.Context, url string, depth int)
 	ChanResult() <-chan CrawlResult
@@ -112,33 +113,33 @@ func NewCrawler(r Requester) *crawler {
 }
 
 func (c *crawler) Scan(ctx context.Context, url string, depth int) {
-	if depth <= 0 {
+	if depth <= 0 { //Проверяем то, что есть запас по глубине
 		return
 	}
 	c.mu.RLock()
-	_, ok := c.visited[url]
+	_, ok := c.visited[url] //Проверяем, что мы ещё не смотрели эту страницу
 	c.mu.RUnlock()
 	if ok {
 		return
 	}
 	select {
-	case <-ctx.Done():
+	case <-ctx.Done(): //Если контекст завершен - прекращаем выполнение
 		return
 	default:
-		page, err := c.r.Get(ctx, url)
+		page, err := c.r.Get(ctx, url) //Запрашиваем страницу через Requester
 		if err != nil {
-			c.res <- CrawlResult{Err: err}
+			c.res <- CrawlResult{Err: err} //Записываем ошибку в канал
 			return
 		}
 		c.mu.Lock()
-		c.visited[url] = struct{}{}
+		c.visited[url] = struct{}{} //Помечаем страницу просмотренной
 		c.mu.Unlock()
-		c.res <- CrawlResult{
+		c.res <- CrawlResult{ //Отправляем результаты в канал
 			Title: page.GetTitle(),
 			Url:   url,
 		}
 		for _, link := range page.GetLinks() {
-			go c.Scan(ctx, link, depth-1)
+			go c.Scan(ctx, link, depth-1) //На все полученные ссылки запускаем новую рутину сборки
 		}
 	}
 }
@@ -147,6 +148,7 @@ func (c *crawler) ChanResult() <-chan CrawlResult {
 	return c.res
 }
 
+//Config - структура для конфигурации
 type Config struct {
 	MaxDepth   int
 	MaxResults int
@@ -171,17 +173,17 @@ func main() {
 	cr = NewCrawler(r)
 
 	ctx, cancel := context.WithCancel(context.Background())
-	go cr.Scan(ctx, cfg.Url, cfg.MaxDepth)
-	go processResult(ctx, cancel, cr, cfg)
+	go cr.Scan(ctx, cfg.Url, cfg.MaxDepth) //Запускаем краулер в отдельной рутине
+	go processResult(ctx, cancel, cr, cfg) //Обрабатываем результаты в отдельной рутине
 
-	sigCh := make(chan os.Signal)
-	signal.Notify(sigCh, syscall.SIGINT)
+	sigCh := make(chan os.Signal)        //Создаем канал для приема сигналов
+	signal.Notify(sigCh, syscall.SIGINT) //Подписываемся на сигнал SIGINT
 	for {
 		select {
-		case <-ctx.Done():
+		case <-ctx.Done(): //Если всё завершили - выходим
 			return
 		case <-sigCh:
-			cancel()
+			cancel() //Если пришёл сигнал SigInt - завершаем контекст
 		}
 	}
 }
