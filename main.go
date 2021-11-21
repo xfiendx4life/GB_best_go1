@@ -182,7 +182,7 @@ func mainStarter() {
 		MaxDepth:   3,
 		MaxResults: 10,
 		MaxErrors:  10,
-		Url:        "http://telegram.org",
+		Url:        "http://127.0.0.1:5500/1.html",
 		Timeout:    3,
 	}
 	var cr Crawler
@@ -227,7 +227,7 @@ func processResult(ctx context.Context, cancel func(), cr Crawler, cfg Config) {
 			if msg.Err != nil {
 				maxErrors--
 				log.Printf("crawler result return err: %s\n", msg.Err.Error())
-				syscall.Kill(os.Getpid(), syscall.SIGUSR1)
+				// syscall.Kill(os.Getpid(), syscall.SIGUSR1)
 				if maxErrors <= 0 {
 					cancel()
 					return
