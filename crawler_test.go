@@ -262,30 +262,24 @@ func TestScanCheckDepth(t *testing.T) {
 	ctx := context.Background()
 	// ctx, _ = context.WithTimeout(ctx, time.Second*1)
 	go cr.Scan(ctx, cfg.Url, cfg.MaxDepth)
-	res := ""
-	_ = res
 	var err error
 	func() {
-		for {
+		for cfg.MaxResults > 0 {
 			select {
 			case <-ctx.Done():
 				require.True(t, false)
 				return
-			case msg := <-cr.ChanResult():
+			case <-cr.ChanResult():
 				if cfg.MaxResults > 0 {
 					cfg.MaxResults--
-					res = msg.Title
-					err = msg.Err
 				} else {
 					return
 				}
 			}
 		}
 	}()
-
 	assert.Nil(t, err)
-	assert.NotEqual(t, res, "")
-	assert.Equal(t, res, "stubPageTitle3")
+	assert.Equal(t, 3, len(cr.visited))
 }
 
 func TestScanError(t *testing.T) {
@@ -351,8 +345,6 @@ func TestScanCheckChangingDepth(t *testing.T) {
 				require.True(t, false)
 				return
 			case msg := <-cr.ChanResult():
-				// we have to send signal to increment depth, so
-				// we want error first and if we get it we send signal
 				if cfg.MaxResults > 0 {
 					cfg.MaxResults--
 					res = append(res, msg.Title)
