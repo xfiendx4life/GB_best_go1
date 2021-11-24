@@ -22,11 +22,8 @@ import (
 )
 
 type crawlerStub struct {
-	// r         requesterMock
 	res       chan CrawlResult
 	chngDepth chan int // для изменения глубины поиска
-	// visited   map[string]struct{}
-	// mu        sync.RWMutex
 	testFunc func() []CrawlResult
 }
 
