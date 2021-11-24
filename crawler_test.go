@@ -3,13 +3,17 @@ package main
 import (
 	"context"
 	"fmt"
+	"html/template"
+	"io"
+	"net/http"
 	"strings"
 
 	// "fmt"
 	"io/ioutil"
 	"log"
 	"os"
-	"sync"
+
+	// "sync"
 	"testing"
 	"time"
 
@@ -18,12 +22,12 @@ import (
 )
 
 type crawlerStub struct {
-	r         requesterMock
+	// r         requesterMock
 	res       chan CrawlResult
 	chngDepth chan int // для изменения глубины поиска
-	visited   map[string]struct{}
-	mu        sync.RWMutex
-	testFunc  func() []CrawlResult
+	// visited   map[string]struct{}
+	// mu        sync.RWMutex
+	testFunc func() []CrawlResult
 }
 
 type requesterMock struct {
@@ -339,7 +343,7 @@ func TestScanCheckChangingDepth(t *testing.T) {
 	_ = res
 	cr.ChangeDepth(2)
 	func() {
-		for cfg.MaxResults > 0{
+		for cfg.MaxResults > 0 {
 			select {
 			case <-ctx.Done():
 				require.True(t, false)
@@ -356,4 +360,54 @@ func TestScanCheckChangingDepth(t *testing.T) {
 	}()
 	assert.NotEqual(t, res, "")
 	assert.Equal(t, 3, len(cr.visited))
+}
+
+func createReader() io.Reader {
+	r, err := os.ReadFile("1.html")
+	if err != nil {
+		log.Fatal("can't read test html file")
+	}
+	return strings.NewReader(string(r))
+}
+
+func TestPageGetTitle(t *testing.T) {
+	p, err := NewPage(createReader())
+	assert.Nil(t, err)
+	ctx := context.Background()
+	assert.Equal(t, "Document", p.GetTitle(ctx))
+}
+
+func TestGeLinks(t *testing.T) {
+	p, err := NewPage(createReader())
+	assert.Nil(t, err)
+	links := p.GetLinks(context.Background())
+	assert.Equal(t, 3, len(links))
+}
+
+func startLocalServer(ctx context.Context) {
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		t, _ := template.ParseFiles("1.html")
+		t.Execute(w, struct{}{})
+	})
+	log.Fatal(http.ListenAndServe(":8080", nil))
+}
+
+
+func TestRequesterGet(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	go startLocalServer(ctx)
+	r := NewRequester(time.Duration(3) * time.Second)
+	p, err := r.Get(ctx, "http://localhost:8080")
+	assert.Nil(t, err)
+	assert.NotNil(t, p)
+	cancel()
+}
+
+func TestRequesterGetNoServer(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	// go startLocalServer(ctx)
+	r := NewRequester(time.Duration(3) * time.Second)
+	_, err := r.Get(ctx, "http://localhost:8000")
+	assert.NotNil(t, err)
+	cancel()
 }
