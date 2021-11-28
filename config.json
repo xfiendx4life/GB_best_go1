@@ -1,0 +1,7 @@
+{
+    "maxdepth":   3,
+    "maxresults": 10,
+    "maxerrors":  10,
+    "url":        "http://127.0.0.1:5555/1.html",
+    "timeout":    3
+}
