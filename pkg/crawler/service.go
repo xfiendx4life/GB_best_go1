@@ -1,9 +1,10 @@
 package crawler
 
 import (
+	// File is not `gofmt`-ed with `-s` (gofmt) "sync"- changed imports order, put sync after lesson1/pkg/requester
 	"context"
-	"sync"
 	"lesson1/pkg/requester"
+	"sync"
 )
 
 type crawler struct {

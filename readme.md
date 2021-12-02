@@ -77,3 +77,32 @@ assert.NotNil(t, p)
 CONFIGPATH=../../config.json go run .
 ```
 Выше пример файла с моим конфигом.
+
+
+## Задание 6
+
+ + Добавлена конфигурация для линтеров (на основе методички и конфигурации с сайта golangci-lint)
+ + Выбраны линтеры, кроме обязательных:
+  	- goconst # нахождение строк, которые следует вынести в константы
+  	- funlen # детектирование слишком крупных функций
+	- errcheck # проверка на обработку всех ошибок
+	- deadcode # детектирование не использованного кода
+	- gochecknoglobals # поиск глобальных переменных
+ + Проверка в тестах отменена
+ + найдены ошибки:
+ ```go
+ pkg/requester/service.go:42: File is not `gofmt`-ed with `-s` (gofmt)
+}
+pkg/crawler/service.go:5: File is not `gofmt`-ed with `-s` (gofmt)
+        "sync"
+cmd/crawler/main.go:27:7: lostcancel: the cancel function returned by context.WithCancel should be called, not discarded, to avoid a context leak (govet)
+        ctx, _ := context.WithCancel(context.Background())
+             ^
+pkg/requester/service.go:41:2: unreachable: unreachable code (govet)
+        return nil, nil
+```
+ + проблемы решены:
+	- В проблемах с форматированием, добавлена пустая строка и изменен порядок импортов на алфавитный, соотевтственно. 
+	- С cancel() добавлен `defer cancel()` для первой функции, чтобы отменять контекст в любом случае
+	- Удален ненужный `return nil, nil`
+ + Места проблем, решенных линтерами помечены комментарием в коде

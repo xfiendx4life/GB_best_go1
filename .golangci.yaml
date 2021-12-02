@@ -1,0 +1,51 @@
+run:
+  # default concurrency is a available CPU number
+  concurrency: 4
+
+  # timeout for analysis, e.g. 30s, 5m, default is 1m
+  timeout: 1m
+
+  # exit code when at least one issue was found, default is 1
+  issues-exit-code: 1
+
+  # include test files or not, default is true
+  tests: false
+
+skip-files:
+    - "*.html"
+    - config.json
+
+linters:
+  disable-all: true
+  enable:
+    - gofmt # форматирование кода (пробелы, отступы, скобки)
+    - goimports # обновление списка imports
+    - govet # общий анализ возможных багов
+    - goconst # нахождение строк, которые следует вынести в константы
+    - funlen # детектирование слишком крупных функций
+    - errcheck # проверка на обработку всех ошибок
+    - deadcode # детектирование не использованного кода
+    - gochecknoglobals # поиск глобальных переменных
+
+linters-settings:
+  goimports:
+    # указываем префикс локальных импортов, они будут группироваться
+    local-prefixes: path/to/module
+  govet:
+    # проверка на использование переменных «в тени»
+    check-shadowing: true
+  goconst:
+    # goconst находит строки не меньше 2 символов, которые встречаются хотя бы 2 раза
+    min-len: 2
+    min-occurrences: 2    
+  funlen:
+    # функция помечается длинной если она больше 100 строк кода либо больше 50 операций
+    lines: 100
+    statements: 50
+  errcheck:
+    # report about not checking of errors in type assertions: `a := b.(MyStruct)`;
+    # default is false: such cases aren't reported by default.
+    check-type-assertions: true
+    # report about assignment of errors to blank identifier: `num, _ := strconv.Atoi(numStr)`;
+    # default is false: such cases aren't reported by default.
+    check-blank: true

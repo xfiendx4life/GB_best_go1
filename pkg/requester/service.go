@@ -38,5 +38,10 @@ func (r requester) Get(ctx context.Context, url string) (page.Page, error) {
 		}
 		return page, nil
 	}
-	return nil, nil
+	// unreachable: unreachable code (govet)
+	// return nil, nil
+	// deleted unreachable code
 }
+
+// File is not `gofmt`-ed with `-s` (gofmt)
+// added empty string

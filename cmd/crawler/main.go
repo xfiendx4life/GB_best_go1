@@ -24,10 +24,13 @@ func mainStarter() {
 	r := requester.NewRequester(time.Duration(cfg.Timeout) * time.Second)
 	cr = crawler.NewCrawler(r)
 
-	ctx, _ := context.WithCancel(context.Background())
-	ctx, cancel := context.WithTimeout(ctx, time.Second*time.Duration(cfg.Timeout)) // добавим таймаут в контекст
-	go cr.Scan(ctx, cfg.Url, cfg.MaxDepth)                                          //Запускаем краулер в отдельной рутине
-	go process.ProcessResult(ctx, cancel, cr, cfg)                                  //Обрабатываем результаты в отдельной рутине
+	// lostcancel: the cancel function returned by context.WithCancel should be called, not discarded, to avoid a context leak (govet)
+	// defer cancel func to close context in any case
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	ctx, cancel = context.WithTimeout(ctx, time.Second*time.Duration(cfg.Timeout)) // добавим таймаут в контекст
+	go cr.Scan(ctx, cfg.Url, cfg.MaxDepth)                                         //Запускаем краулер в отдельной рутине
+	go process.ProcessResult(ctx, cancel, cr, cfg)                                 //Обрабатываем результаты в отдельной рутине
 
 	sigCh := make(chan os.Signal, 1)                      //Создаем канал для приема сигналов
 	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGUSR1) //Подписываемся на сигнал SIGINT
