@@ -10,10 +10,11 @@ import (
 	"testing"
 	"time"
 
+	"lesson1/pkg/config"
+	"lesson1/pkg/crawler"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"lesson1/pkg/crawler"
-	"lesson1/pkg/config"
 )
 
 type crawlerStub struct {
@@ -50,7 +51,7 @@ func TestProcessResultNoError(t *testing.T) {
 	c := crawlerStub{
 		res: make(chan crawler.CrawlResult),
 		testFunc: func() []crawler.CrawlResult {
-			return []crawler.CrawlResult {
+			return []crawler.CrawlResult{
 				{nil, "testTitle1", "testurl"},
 				{nil, "testTitle2", "testur2"},
 				{nil, "testTitle3", "testurl3"},
