@@ -106,3 +106,18 @@ pkg/requester/service.go:41:2: unreachable: unreachable code (govet)
 	- С cancel() добавлен `defer cancel()` для первой функции, чтобы отменять контекст в любом случае
 	- Удален ненужный `return nil, nil`
  + Места проблем, решенных линтерами помечены комментарием в коде
+
+
+## Задание 7
++ Создан Makefile
+	- Добавлане проверка линтерами `golangci-lint run`
+	- Запуски тестов, обычный и с параметром `-v`
+	- Билд
+	- Запуск `CONFIGPATH=config.json ./bin/${BINARY_NAME}` со стандартным путем для файла конфига
++ Установлен `pre-commit`
+	- использованы стандартные проверки пробелов
+	- использованы хуки из `https://github.com/dnephin/pre-commit-golang`
+		* `id: go-imports`
+    	* `id: golangci-lint`
+    	* `id: go-unit-tests`
+    	* `id: go-mod-tidy`
